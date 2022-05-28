@@ -8,13 +8,12 @@
 
 <script>
   export default {
-    name: 'FeatureView',
-    props: {
-
-    }
+    name: 'FeatureView'
   }
 </script>
 
 <style>
-
+  .feature img {
+    width: 100%;
+  }
 </style>

@@ -103,39 +103,42 @@
       <li>分类列表99</li>
       <li>分类列表100</li>
     </ul>
+    <back-top @click.native="backClick" v-show="isShowBackTop" />
   </div>
 </template>
 
 <script>
 import BScroll from "better-scroll";
-
+import { backTopkMixin } from '@/common/mixin'
+ 
 export default {
   name: "Category",
   data() {
     return {
-      scroll: null
-    }
+      scroll: null,
+    };
   },
+  mixins: [backTopkMixin],
   // 组装创建完后调用
   mounted() {
-     this.scroll = new BScroll(this.$refs.aaa, {
-       probeType: 3,
-       pullUpLoad: true
-     });
+    this.scroll = new BScroll(this.$refs.aaa, {
+      probeType: 3,
+      pullUpLoad: true,
+    });
 
-     this.scroll.on('scroll', (position) => {
+    this.scroll.on("scroll", (position) => {
       //  console.log(position);
-     });
+    });
 
-     this.scroll.on('pullingUp', () => {
+    this.scroll.on("pullingUp", () => {
       //  console.log('上拉加载更多');
-     });
+    });
   },
   methods: {
     btnClick() {
       // console.log('btnClick');
-    }
-  }
+    },
+  },
 };
 </script>
 

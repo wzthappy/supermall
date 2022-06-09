@@ -4,12 +4,12 @@
       <div slot="center">购物街</div>
     </nav-bar>
     <tab-control
-        :titles="['流行', '新款', '精选']"
-        @tabClick="tabClick"
-        ref="tabControl1"
-        class="tab-control"
-        v-show="isTabFixed"
-      />
+      :titles="['流行', '新款', '精选']"
+      @tabClick="tabClick"
+      ref="tabControl1"
+      class="tab-control"
+      v-show="isTabFixed"
+    />
 
     <scroll
       class="content"
@@ -43,10 +43,9 @@ import NavBar from "@/components/common/navbar/NavBar";
 import TabControl from "@/components/content/tabControl/TabControl.vue";
 import GoodList from "@/components/content/goods/GoodsList";
 import Scroll from "@/components/common/scroll/Scroll";
-import BackTop from "@/components/content/backTop/BackTop";
 
 import { getHomeMultidata, getHomeGoods } from "@/network/home";
-import { debounce } from "@/common/utils";
+import { itrmListenerMixin, backTopkMixin } from "@/common/mixin";
 
 export default {
   name: "Home",
@@ -58,8 +57,8 @@ export default {
     TabControl,
     GoodList,
     Scroll,
-    BackTop,
   },
+  mixins: [itrmListenerMixin, backTopkMixin],
   data() {
     return {
       banners: [],
@@ -70,10 +69,9 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
-      isShowBackTop: false,
       tabOffsetTop: 0,
       isTabFixed: false,
-      saveY: 0
+      saveY: 0,
     };
   },
   computed: {
@@ -86,7 +84,11 @@ export default {
     this.$refs.scroll.scrollTo(0, this.saveY, 0);
   },
   deactivated() {
+    // 1. 保存Y值
     this.saveY = this.$refs.scroll.getScrollY();
+
+    // 2. 取消全局事件的监听
+    this.$bus.$off("itemImageLoad", this.itemImgListener);
   },
   created() {
     // 请求多个数据
@@ -97,15 +99,10 @@ export default {
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
   },
+
   mounted() {
-    // 1. 图片加载完成的事件监听
-    const refresh = debounce(
-      this.$refs.scroll && this.$refs.scroll.refresh,
-      50
-    );
-    this.$bus.$on("itemImageLoad", () => {
-      refresh();
-    });
+    // 3. 手动点击一次
+    this.tabClick(0);
   },
   methods: {
     /**
@@ -123,18 +120,15 @@ export default {
           this.currentType = "sell";
           break;
       }
-      this.$refs.tabControl1.currentIndex =  index;
-      this.$refs.tabControl2.currentIndex =  index;
+      this.$refs.tabControl1.currentIndex = index;
+      this.$refs.tabControl2.currentIndex = index;
     },
     loadMore() {
       this.getHomeGoods(this.currentType);
     },
-    backClick() {
-      this.$refs.scroll.scrollTo(0, 0, 500);
-    },
     contentScroll(position) {
       // 1. 判断BackTop是否显示
-      this.isShowBackTop = -position.y > 1000;
+      this.listenShowBackTop(position);
 
       // 2. 决定tabControl是否吸顶
       this.isTabFixed = -position.y > this.tabOffsetTop;
